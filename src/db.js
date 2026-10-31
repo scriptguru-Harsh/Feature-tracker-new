@@ -34,9 +34,14 @@ export async function initializeDatabase() {
       lead text NOT NULL DEFAULT '',
       inf text NOT NULL DEFAULT 'Not Informed',
       notes text NOT NULL DEFAULT '',
+      deadline date,
+      priority text NOT NULL DEFAULT 'Normal',
       created timestamptz NOT NULL DEFAULT now(),
       updated_at timestamptz NOT NULL DEFAULT now()
-    )
+    );
+    ALTER TABLE features
+      ADD COLUMN IF NOT EXISTS deadline date,
+      ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'Normal'
   `)
 }
 

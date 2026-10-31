@@ -30,6 +30,25 @@ The API listens on `0.0.0.0` and defaults to port `3000`.
 
 The built-in keep-alive only works while the service is awake. Configure an external pinger such as UptimeRobot or cron-job.org to request `/health` every 5–10 minutes so a sleeping free service receives inbound traffic.
 
+## Feature fields and migration
+
+The feature API accepts `name`, `dev`, `test`, `dep`, `by`, `clinic`, `cred`,
+`lead`, `inf`, `notes`, `deadline`, and `priority`. The `by` field is stored in
+the `requested_by` database column. `deadline` is a valid `YYYY-MM-DD` date or
+`null`; `priority` is `Normal` or `High` and defaults to `Normal`.
+
+On startup, the API adds the two new columns with `ADD COLUMN IF NOT EXISTS`.
+This is safe to run on existing databases and preserves rows that have no
+deadline.
+
+## Optional Groq smart parsing
+
+The app's rule-based Quick add works without AI. To enable optional AI parsing
+on Render, add `GROQ_API_KEY` to the API service environment and optionally set
+`GROQ_MODEL` (defaults to `llama-3.1-8b-instant`). The API reports availability
+through `GET /api/config`; AI requests require a JWT and are limited to 20 per
+user per minute. Do not configure Groq credentials in the frontend.
+
 ## API examples
 
 Set the API URL and replace the example credentials as needed:
@@ -71,4 +90,5 @@ curl -i -X DELETE "$API_URL/api/features/$FEATURE_ID" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-The feature API uses JSON fields `name`, `dev`, `test`, `dep`, `by`, `clinic`, `cred`, `lead`, `inf`, `notes`, and `created`. The `by` field is stored in the `requested_by` database column.
+The feature API returns the same feature fields plus `id` and `created`. The
+unauthenticated keep-alive endpoint remains available at `/health`.

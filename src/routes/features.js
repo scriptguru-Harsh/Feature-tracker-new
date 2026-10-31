@@ -15,12 +15,23 @@ const fields = {
   lead: { column: 'lead', max: 2000 },
   inf: { column: 'inf', values: ['Not Informed', 'Informed', 'Not Required'] },
   notes: { column: 'notes', max: 2000 },
+  deadline: { column: 'deadline', date: true },
+  priority: { column: 'priority', values: ['Normal', 'High'] },
 }
 
 const selectFields = `
   id, name, dev, test, dep, requested_by AS "by", clinic, cred, lead, inf,
-  notes, created
+  notes, deadline, priority, created
 `
+
+function validDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const [year, month, day] = value.split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day
+}
 
 function validateFeatureBody(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -35,6 +46,8 @@ function validateFeatureBody(body) {
       if (typeof value !== 'string' || !definition.values.includes(value)) {
         return `Invalid value for ${field}`
       }
+    } else if (definition.date) {
+      if (value !== null && !validDate(value)) return 'deadline must be a valid YYYY-MM-DD date or null'
     } else if (typeof value !== 'string' || value.length > definition.max) {
       return `${field} must be a string no longer than ${definition.max} characters`
     }

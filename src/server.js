@@ -6,7 +6,9 @@ import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
 import { createToken, requireAdmin, requireAuth } from './auth.js'
 import { initializeDatabase, pool, seedAdminIfEmpty } from './db.js'
+import configRouter from './routes/config.js'
 import featuresRouter from './routes/features.js'
+import quickAddRouter from './routes/quickAdd.js'
 import usersRouter from './routes/users.js'
 
 const app = express()
@@ -28,6 +30,8 @@ app.use(express.json({ limit: '100kb' }))
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() })
 })
+
+app.use('/api/config', configRouter)
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -63,6 +67,7 @@ app.get('/api/auth/me', (req, res) => {
 })
 
 app.use('/api/features', featuresRouter)
+app.use('/api/quick-add', quickAddRouter)
 app.use('/api/users', requireAdmin, usersRouter)
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }))
