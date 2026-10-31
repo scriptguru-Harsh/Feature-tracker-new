@@ -10,8 +10,8 @@ import featuresRouter from './routes/features.js'
 import usersRouter from './routes/users.js'
 
 const app = express()
-const port = Number(process.env.PORT) || 3000
-const allowedOrigins = (process.env.CORS_ORIGIN || '')
+const defaultAllowedOrigins = ['https://animated-haupia-b5a79e.netlify.app']
+const allowedOrigins = (process.env.CORS_ORIGIN || defaultAllowedOrigins.join(','))
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean)
