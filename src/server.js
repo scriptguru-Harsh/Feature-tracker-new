@@ -95,6 +95,7 @@ async function shutdown(signal) {
 }
 
 async function start() {
+  const port = Number(process.env.PORT) || 3000
   await initializeDatabase()
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
     const adminHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10)
