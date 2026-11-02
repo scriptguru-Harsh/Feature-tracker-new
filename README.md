@@ -41,6 +41,11 @@ On startup, the API adds the two new columns with `ADD COLUMN IF NOT EXISTS`.
 This is safe to run on existing databases and preserves rows that have no
 deadline.
 
+Startup also imports the 25 feature requests from the provided spreadsheet
+once. It records a migration marker and inserts only new feature rows inside a
+transaction; existing features are not overwritten or removed. Imported
+spreadsheet remarks and unparseable source dates are retained in Notes.
+
 ## Optional Groq smart parsing
 
 The app's rule-based Quick add works without AI. To enable optional AI parsing

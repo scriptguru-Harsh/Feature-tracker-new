@@ -1,4 +1,5 @@
 import pg from 'pg'
+import { getSpreadsheetSeedFeatures, SPREADSHEET_SEED_MIGRATION } from './spreadsheetSeed.js'
 
 const { Pool } = pg
 
@@ -41,8 +42,65 @@ export async function initializeDatabase() {
     );
     ALTER TABLE features
       ADD COLUMN IF NOT EXISTS deadline date,
-      ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'Normal'
+      ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'Normal';
+    CREATE TABLE IF NOT EXISTS feature_tracker_migrations (
+      name text PRIMARY KEY,
+      applied_at timestamptz NOT NULL DEFAULT now()
+    )
   `)
+}
+
+export async function seedSpreadsheetFeatures() {
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [SPREADSHEET_SEED_MIGRATION])
+    const applied = await client.query(
+      'SELECT 1 FROM feature_tracker_migrations WHERE name = $1',
+      [SPREADSHEET_SEED_MIGRATION],
+    )
+    if (applied.rowCount) {
+      await client.query('COMMIT')
+      return
+    }
+
+    const seedFeatures = getSpreadsheetSeedFeatures()
+    for (const feature of seedFeatures) {
+      await client.query(`
+        INSERT INTO features (
+          name, dev, test, dep, requested_by, clinic, cred, lead, inf, notes,
+          deadline, priority, created
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+          $11, $12, COALESCE($13::date::timestamptz, now())
+        )
+      `, [
+        feature.name,
+        feature.dev,
+        feature.test,
+        feature.dep,
+        feature.by,
+        feature.clinic,
+        feature.cred,
+        feature.lead,
+        feature.inf,
+        feature.notes,
+        feature.deadline,
+        feature.priority,
+        feature.sourceDate,
+      ])
+    }
+    await client.query(
+      'INSERT INTO feature_tracker_migrations (name) VALUES ($1)',
+      [SPREADSHEET_SEED_MIGRATION],
+    )
+    await client.query('COMMIT')
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 export async function seedAdminIfEmpty(email, passwordHash) {

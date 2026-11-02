@@ -5,7 +5,7 @@ import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
 import { createToken, requireAdmin, requireAuth } from './auth.js'
-import { initializeDatabase, pool, seedAdminIfEmpty } from './db.js'
+import { initializeDatabase, pool, seedAdminIfEmpty, seedSpreadsheetFeatures } from './db.js'
 import configRouter from './routes/config.js'
 import featuresRouter from './routes/features.js'
 import quickAddRouter from './routes/quickAdd.js'
@@ -102,6 +102,7 @@ async function shutdown(signal) {
 async function start() {
   const port = Number(process.env.PORT) || 3000
   await initializeDatabase()
+  await seedSpreadsheetFeatures()
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
     const adminHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10)
     await seedAdminIfEmpty(process.env.ADMIN_EMAIL, adminHash)

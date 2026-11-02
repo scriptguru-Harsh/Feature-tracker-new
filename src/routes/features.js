@@ -21,7 +21,7 @@ const fields = {
 
 const selectFields = `
   id, name, dev, test, dep, requested_by AS "by", clinic, cred, lead, inf,
-  notes, deadline, priority, created
+  notes, deadline::text AS deadline, priority, created
 `
 
 function validDate(value) {
