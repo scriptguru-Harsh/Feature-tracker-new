@@ -12,7 +12,7 @@ import quickAddRouter from './routes/quickAdd.js'
 import usersRouter from './routes/users.js'
 
 const app = express()
-const defaultAllowedOrigins = ['https://eclectic-dasik-ce4b46.netlify.app/']
+const defaultAllowedOrigins = ['https://eclectic-dasik-ce4b46.netlify.app']
 const allowedOrigins = (process.env.CORS_ORIGIN || defaultAllowedOrigins.join(','))
   .split(',')
   .map((origin) => origin.trim())
